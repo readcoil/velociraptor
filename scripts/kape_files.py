@@ -33,8 +33,7 @@ class KapeContext:
     kape_data = {}
 
 def read_targets(ctx, project_path):
-    for root, dirs, files in os.walk(
-            project_path + "/Targets", topdown=False):
+    for root, dirs, files in os.walk(f"{project_path}/Targets", topdown=False):
 
         for name in files:
             if not name.endswith(".tkape") or name in BLACKLISTED:
@@ -46,7 +45,7 @@ def read_targets(ctx, project_path):
                 full_path = os.path.join(root, name)
                 ctx.kape_data[name] = yaml.safe_load(open(full_path).read())
             except Exception as e:
-                print ("Unable to parse %s: %s" % (full_path, e))
+                print(f"Unable to parse {full_path}: {e}")
 
             ctx.groups[name] = set()
 
@@ -57,8 +56,7 @@ def read_targets(ctx, project_path):
             if target.get("Recursive"):
                 glob = glob.rstrip("\\") + "/**10"
 
-            mask = target.get("FileMask")
-            if mask:
+            if mask := target.get("FileMask"):
                 glob = glob.rstrip("\\") + "/" + mask
 
             # Expand the targets in the glob
@@ -78,7 +76,7 @@ def read_targets(ctx, project_path):
                 find_accessor(glob),
                 target.get("Comment", "")])
 
-    for i in range(3):
+    for _ in range(3):
         for name, data in ctx.kape_data.items():
             for target in data["Targets"]:
                 glob = target.get("Path", "")
@@ -97,10 +95,7 @@ def find_accessor(glob):
     if ":" in glob:
         return "ntfs"
 
-    if "$" in glob:
-        return "ntfs"
-
-    return "lazy_ntfs"
+    return "ntfs" if "$" in glob else "lazy_ntfs"
 
 
 def find_kape_dependency(ctx, glob):
@@ -315,15 +310,23 @@ reports:
             ctx.kape_data[k].get("Author"),
             ", ".join([ctx.rows[x][1] for x in v]))
 
-        ids = ['%s' % x for x in v]
-        if len(ids) > 0:
+        if ids := [f'{x}' for x in v]:
             rules.append([sanitize(k), sorted(v)])
 
-    print (template % dict(
-        parameters=parameters_str,
-        rules="\n".join(["      " + x for x in get_csv(rules).splitlines()]),
-        csv="\n".join(["      " + x for x in get_csv(ctx.rows).splitlines()]),
-    ))
+    print(
+        (
+            template
+            % dict(
+                parameters=parameters_str,
+                rules="\n".join(
+                    [f"      {x}" for x in get_csv(rules).splitlines()]
+                ),
+                csv="\n".join(
+                    [f"      {x}" for x in get_csv(ctx.rows).splitlines()]
+                ),
+            )
+        )
+    )
 
 
 if __name__ == "__main__":

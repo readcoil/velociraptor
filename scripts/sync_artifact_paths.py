@@ -14,7 +14,7 @@ parser.add_argument('directory', type=str,
 def main():
     args = parser.parse_args()
     root = args.directory
-    file_info = dict()
+    file_info = {}
 
     for root, dirs, files in os.walk(root, topdown=False):
         for name in files:
@@ -24,8 +24,9 @@ def main():
                     definition = yaml.safe_load(fd)
                     name = definition['name']
                     if name in file_info:
-                        raise TypeError("Files %s and %s contain artifact named %s" % (
-                            path_name, file_info[name], name))
+                        raise TypeError(
+                            f"Files {path_name} and {file_info[name]} contain artifact named {name}"
+                        )
 
                     file_info[name] = path_name
 
